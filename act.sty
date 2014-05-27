@@ -1,0 +1,200 @@
+%Useful preamble for publications
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{async}[05/19/2014 v1.0 Macros for formatting async code]
+
+\RequirePackage{amsmath}  % essential math package
+\RequirePackage{mathtools}  % really useful extension for math (like :=)
+\RequirePackage{mathspec}  % for custom fonts
+\RequirePackage{xcolor}  % for solarized
+\RequirePackage{stmaryrd}  % for logical operators
+\RequirePackage{etoolbox}  % for fixing bug in listings
+\RequirePackage[font=small, labelfont=bf]{caption}  % for captions
+\RequirePackage[]{listings}  % for code formatting
+\ProcessOptions\relax
+
+% Patch to match ')' for listings 'literate' option
+\makeatletter
+\patchcmd{\lsthk@SelectCharTable}{)}{`}{}{}
+\makeatother 
+
+% Set font families for math
+\setmathsfont(Digits,Latin,Greek){CMU Bright}
+\setmathrm{Avenir Next}
+\setmathsf{CMU Bright}
+%\setmathtt[StylisticSet={1,2,3}]{Inconsolatazi4-Regular.otf}
+\setmathtt{Consolas}
+
+% Set font families for text
+\setmainfont[Scale=MatchLowercase,Mapping=tex-text]{Avenir Next}
+\setsansfont[Scale=MatchLowercase,Mapping=tex-text]{CMU Bright}
+%\setmonofont[StylisticSet={1,2,3}]{Inconsolatazi4-Regular.otf}
+\setmonofont{Consolas}
+
+% Solarized colors:
+\definecolor{base03}{HTML}{002B36}
+\definecolor{base02}{HTML}{073642}
+\definecolor{base01}{HTML}{586E75}
+\definecolor{base00}{HTML}{657B83}
+\definecolor{base0}{HTML}{839496}
+\definecolor{base1}{HTML}{93A1A1}
+\definecolor{base2}{HTML}{EEE8D5}
+\definecolor{base3}{HTML}{FDF6E3}
+\definecolor{yellow}{HTML}{B58900}
+\definecolor{orange}{HTML}{CB4B16}
+\definecolor{red}{HTML}{DC322F}
+\definecolor{magenta}{HTML}{D33682}
+\definecolor{violet}{HTML}{6C71C4}
+\definecolor{blue}{HTML}{268BD2}
+\definecolor{cyan}{HTML}{2AA198}
+\definecolor{green}{HTML}{859900}
+
+% Miscellaneous symbols
+\newcommand{\plus}{\raisebox{.4\height}{\scalebox{.6}{\ensuremath{+}}}}
+\newcommand{\minus}{\raisebox{.4\height}{\scalebox{.8}{\ensuremath{-}}}}
+\newcommand{\tildett}{\ensuremath{\scriptstyle\sim}}
+
+% Text formatting shorthands
+\newcommand{\codett}[1]{\texttt{#1}}
+\newcommand{\substt}[2]{\texttt{#1}$_{\texttt{#2}}$}
+
+% Style shorthand for code elements
+\newcommand{\cdelim}[1]{\color{red}#1}  % delimiter
+\newcommand{\cop}[1]{\color{yellow}#1}  % operators
+
+% Style definition for CHP
+\lstdefinelanguage{chp}{%
+    sensitive=true,
+    keywords={bool, pbool, pbint, preal}, 
+    alsoletter={'},
+    morecomment=[l]{//},
+    morecomment=[s]{/*}{*/},
+    morecomment=[is]{\%}{\%},
+    morestring=[b]",
+    moredelim=*[is][\ttfamily\color{base01}\textsubscript]{_}{_},
+    moredelim=[is][\ttfamily\color{base01}\textsuperscript]{^}{^},
+    moredelim=[is][\ttfamily\itshape\color{blue}]{@}{@},
+    basicstyle=\ttfamily\normalfont\large,
+    identifierstyle=\ttfamily\mdseries\color{base01},
+    keywordstyle=\ttfamily\bfseries\color{green},
+    stringstyle=\ttfamily\mdseries\color{magenta},
+    commentstyle=\ttfamily\itshape\color{base0},
+    columns=flexible,
+    emph={skip,else}, emphstyle=\color{green}\bfseries,
+    literate=
+    *{0}{{{\color{cyan}0}}}1
+     {1}{{{\color{cyan}1}}}1
+     {2}{{{\color{cyan}2}}}1
+     {3}{{{\color{cyan}3}}}1
+     {4}{{{\color{cyan}4}}}1
+     {5}{{{\color{cyan}5}}}1
+     {6}{{{\color{cyan}6}}}1
+     {7}{{{\color{cyan}7}}}1
+     {8}{{{\color{cyan}8}}}1
+     {9}{{{\color{cyan}9}}}1
+     {*}{{\cop{$\times$}}}2
+     {+}{{\cop{+}}}2
+     {-}{{\cop{$-$}}}2
+     %{/}{{\cop{/}}}2
+    {[}{{\cdelim{\bfseries[}}}2 {]}{{\cdelim{\bfseries]}}}2 
+    {*[}{{\cdelim{\bfseries*\;[}}}3 
+    {(}{{\cdelim{(}}}2 {)}{{\cdelim{)}}}2 
+    {:}{{\cdelim{$\vert$}}}2 {[]}{{\cdelim{$\talloblong$}}}3
+    {->}{{\cop{$\to$}}}4 
+    {&}{{\cop{$\land$}}}3 {|}{{\cop{$\lor$}}}3
+    {~}{{\cop{$\lnot$}}}1 
+    {,}{{\cdelim{,}}}2 {;}{{\cdelim{;}}}2 
+    {<=}{{\cop{$\le$}}}3 {>=}{{\cop{$\ge$}}}3 
+    {<<}{{\cop{$\ll$}}}3 {>>}{{\cop{$\gg$}}}3 
+    {:=}{{\cop{$\coloneqq$}}}4 {!}{{\cop{!}}}2 {?}{{\cop{?}}}2,
+}
+
+\lstdefinelanguage{hse}[]{chp}{%
+    literate=
+    *{0}{{{\color{cyan}0}}}1
+     {1}{{{\color{cyan}1}}}1
+     {2}{{{\color{cyan}2}}}1
+     {3}{{{\color{cyan}3}}}1
+     {4}{{{\color{cyan}4}}}1
+     {5}{{{\color{cyan}5}}}1
+     {6}{{{\color{cyan}6}}}1
+     {7}{{{\color{cyan}7}}}1
+     {8}{{{\color{cyan}8}}}1
+     {9}{{{\color{cyan}9}}}1
+     {*}{{\cop{$\times$}}}2
+     {+}{{\cop{$\uparrow$}}}2
+     {-}{{\cop{$\downarrow$}}}2
+    {[}{{\cdelim{\bfseries[}}}2 {]}{{\cdelim{\bfseries]}}}2 
+    {*[}{{\cdelim{\bfseries*\;[}}}3 
+    {\{}{{\cdelim{\{}}}2 {\}}{{\cdelim{\}}}}2 
+    {(}{{\cdelim{(}}}2 {)}{{\cdelim{)}}}2 
+    {:}{{\cdelim{$\vert$}}}2 {[]}{{\cdelim{$\talloblong$}}}3
+    {->}{{\cop{$\to$}}}4 
+    {&}{{\cop{$\&$}}}3 {|}{{\cop{$\vert$}}}3
+    {&&}{{\cop{$\&$}}}3 {||}{{\cop{$\vert$}}}3
+    {~}{{\cop{\tildett}}}1 
+    {,}{{\cdelim{$\parallel$}}}2 {;}{{\cdelim{;}}}2 
+}
+
+\lstdefinelanguage{prs}[]{chp}{%
+    literate=
+    *{0}{{{\color{cyan}0}}}1
+     {1}{{{\color{cyan}1}}}1
+     {2}{{{\color{cyan}2}}}1
+     {3}{{{\color{cyan}3}}}1
+     {4}{{{\color{cyan}4}}}1
+     {5}{{{\color{cyan}5}}}1
+     {6}{{{\color{cyan}6}}}1
+     {7}{{{\color{cyan}7}}}1
+     {8}{{{\color{cyan}8}}}1
+     {9}{{{\color{cyan}9}}}1
+     {+}{{\cop{$\uparrow$}}}2
+     {-}{{\cop{$\downarrow$}}}2
+     {\{}{{\cdelim{\{}}}2 {\}}{{\cdelim{\}}}}2 
+    {(}{{\cdelim{(}}}2 {)}{{\cdelim{)}}}2 
+    {->}{{\cop{$\to$}}}4 
+    {&}{{\cop{$\&$}}}3 {|}{{\cop{$\vert$}}}3
+    {&&}{{\cop{$\&$}}}3 {||}{{\cop{$\vert$}}}3
+    {~}{{\cop{\tildett}}}1 
+    {,}{{\cdelim{$\parallel$}}}2 {;}{{\cdelim{;}}}2 
+}
+
+% Environment for typing CHP code
+% #1: width of listing as fraction of \textwidth
+% #2: caption
+% #3: line number position (left|right|none)
+\newcommand{\defactenv}[2]{
+    \lstset{ 
+    backgroundcolor=\color{base3},
+    mathescape=true, numberblanklines=false,
+    numbers=#2, numberstyle=\small\color{base1}, stepnumber=1,
+    caption=#1,captionpos=b,
+    xleftmargin=1em, xrightmargin=1em,
+    framexleftmargin=3em, framexrightmargin=3em,
+    showstringspaces=false, frame=lines,
+    fontadjust=false,
+    breaklines=true,
+}
+}
+
+\lstnewenvironment{chp}[3][0.8]
+{\center\minipage{#1\textwidth}
+\defactenv{#2}{#3}
+\lstset{language=chp}
+}
+{\endminipage\endcenter}
+
+\lstnewenvironment{hse}[3][0.8]
+{\center\minipage{#1\textwidth}
+\defactenv{#2}{#3}
+\lstset{language=hse}
+}
+{\endminipage\endcenter}
+
+\lstnewenvironment{prs}[3][0.8]
+{\center\minipage{#1\textwidth}
+\defactenv{#2}{#3}
+\lstset{language=prs}
+}
+{\endminipage\endcenter}
+
+\endinput
