@@ -1,14 +1,11 @@
 %Useful preamble for publications
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{async}[05/19/2014 v1.0 Macros for formatting async code]
+\ProvidesPackage{act}[05/19/2014 v1.0 Macros for formatting async code]
 
-\RequirePackage{amsmath}  % essential math package
 \RequirePackage{mathtools}  % really useful extension for math (like :=)
-\RequirePackage{mathspec}  % for custom fonts
 \RequirePackage{xcolor}  % for solarized
 \RequirePackage{stmaryrd}  % for logical operators
 \RequirePackage{etoolbox}  % for fixing bug in listings
-\RequirePackage[font=small, labelfont=bf]{caption}  % for captions
 \RequirePackage[]{listings}  % for code formatting
 \ProcessOptions\relax
 
@@ -16,19 +13,6 @@
 \makeatletter
 \patchcmd{\lsthk@SelectCharTable}{)}{`}{}{}
 \makeatother 
-
-% Set font families for math
-\setmathsfont(Digits,Latin,Greek){CMU Bright}
-\setmathrm{Avenir Next}
-\setmathsf{CMU Bright}
-%\setmathtt[StylisticSet={1,2,3}]{Inconsolatazi4-Regular.otf}
-\setmathtt{Consolas}
-
-% Set font families for text
-\setmainfont[Scale=MatchLowercase,Mapping=tex-text]{Avenir Next}
-\setsansfont[Scale=MatchLowercase,Mapping=tex-text]{CMU Bright}
-%\setmonofont[StylisticSet={1,2,3}]{Inconsolatazi4-Regular.otf}
-\setmonofont{Consolas}
 
 % Solarized colors:
 \definecolor{base03}{HTML}{002B36}
@@ -73,7 +57,7 @@
     moredelim=*[is][\ttfamily\color{base01}\textsubscript]{_}{_},
     moredelim=[is][\ttfamily\color{base01}\textsuperscript]{^}{^},
     moredelim=[is][\ttfamily\itshape\color{blue}]{@}{@},
-    basicstyle=\ttfamily\normalfont\large,
+    basicstyle=\ttfamily\normalfont,
     identifierstyle=\ttfamily\mdseries\color{base01},
     keywordstyle=\ttfamily\bfseries\color{green},
     stringstyle=\ttfamily\mdseries\color{magenta},
@@ -98,7 +82,7 @@
     {[}{{\cdelim{\bfseries[}}}2 {]}{{\cdelim{\bfseries]}}}2 
     {*[}{{\cdelim{\bfseries*\;[}}}3 
     {(}{{\cdelim{(}}}2 {)}{{\cdelim{)}}}2 
-    {:}{{\cdelim{$\vert$}}}2 {[]}{{\cdelim{$\talloblong$}}}3
+    {:}{{\cop{$\vert$}}}2 {[]}{{\cop{$\talloblong$}}}3
     {->}{{\cop{$\to$}}}4 
     {&}{{\cop{$\land$}}}3 {|}{{\cop{$\lor$}}}3
     {~}{{\cop{$\lnot$}}}1 
