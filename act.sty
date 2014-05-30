@@ -45,6 +45,9 @@
 \newcommand{\cdelim}[1]{\color{red}#1}  % delimiter
 \newcommand{\cop}[1]{\color{yellow}#1}  % operators
 
+% Specific hacks for listings
+\newcommand{\actProbe}[1]{$\overline{\mathtt{#1}}$}
+
 % Style definition for CHP
 \lstdefinelanguage{chp}{%
     sensitive=true,
@@ -55,6 +58,7 @@
     morecomment=[is]{\%}{\%},
     morestring=[b]",
     moredelim=*[is][\ttfamily\color{base01}\textsubscript]{_}{_},
+    moredelim=[is][\ttfamily\color{base01}\expandafter\actProbe]{\#}{\ },
     moredelim=[is][\ttfamily\color{base01}\textsuperscript]{^}{^},
     moredelim=[is][\ttfamily\itshape\color{blue}]{@}{@},
     basicstyle=\ttfamily\normalfont,
@@ -87,8 +91,7 @@
     {>}{{\cop{$>$}}}3 {<}{{\cop{$<$}}}3 
     {&}{{\cop{$\land$}}}3 {|}{{\cop{$\lor$}}}3
     {&&}{{\cop{$\&$}}}3 {||}{{\cop{$\vert$}}}3
-    {~}{{\cop{$\lnot$}}}1 
-    {=}{{\cop{$=$}}}3 
+    {~}{{\cop{$\lnot$}}}1 {=}{{\cop{$=$}}}3 
     {,}{{\cop{$\parallel$}}}2 {;}{{\cdelim{;}}}2 
     {<=}{{\cop{$\le$}}}3 {>=}{{\cop{$\ge$}}}3 
     {<<}{{\cop{$\ll$}}}3 {>>}{{\cop{$\gg$}}}3 
