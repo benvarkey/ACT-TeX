@@ -6,13 +6,14 @@
 \RequirePackage{xcolor}  % for solarized
 \RequirePackage{stmaryrd}  % for logical operators
 \RequirePackage{etoolbox}  % for fixing bug in listings
-\RequirePackage[]{listings}  % for code formatting
+\RequirePackage[listings,skins]{tcolorbox}
+\RequirePackage{needspace}
+%\RequirePackage[]{listings}  % for code formatting
 \ProcessOptions\relax
 
 % Patch to match ')' for listings 'literate' option
 \makeatletter
 \patchcmd{\lsthk@SelectCharTable}{)}{`}{}{}
-\makeatother 
 
 % Solarized colors:
 \definecolor{base03}{HTML}{002B36}
@@ -32,18 +33,146 @@
 \definecolor{cyan}{HTML}{2AA198}
 \definecolor{green}{HTML}{859900}
 
+\newcommand{\colCode}{base01}
+\newcommand{\colKeywords}{yellow}
+\newcommand{\colStrings}{blue}
+\newcommand{\colComments}{base0}
+\newcommand{\colNumbers}{cyan}
+\newcommand{\colBackground}{base3}
+
+\lstdefinestyle{Solarized}{ 
+    basicstyle=\ttfamily\normalfont\color{\colCode},
+    identifierstyle=\ttfamily\mdseries\color{\colCode},
+    keywordstyle=\ttfamily\bfseries\color{\colKeywords},
+    stringstyle=\ttfamily\mdseries\color{\colStrings},
+    commentstyle=\ttfamily\itshape\color{\colComments},
+    numberstyle=\small\color{base1}, 
+    %backgroundcolor=\color{\colBackground}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Code (from http://tex.stackexchange.com/questions/164442/how-can-i-redefine-my-macro-to-accept-a-charcode-instead-of-a-character/164447#164447) to properly select numbers
+\newif\iffirstchar\firstchartrue
+\newif\ifstartedbyadigit
+\newif\ifprecededbyequalsign
+
+\newcommand\processletter
+{%
+  \ifnum\lst@mode=\lst@Pmode%
+    \iffirstchar%
+        \global\startedbyadigitfalse%
+      \fi
+      \global\firstcharfalse%
+    \fi
+}
+
+\newcommand\processdigit
+{%
+  \ifnum\lst@mode=\lst@Pmode%
+      \iffirstchar%
+        \global\startedbyadigittrue%
+      \fi
+      \global\firstcharfalse%
+  \fi
+}
+
+\lst@AddToHook{OutputOther}%
+{%
+  \lst@IfLastOtherOneOf{=}
+    {\global\precededbyequalsigntrue}
+    {}%
+}
+
+\lst@AddToHook{Output}%
+{%
+  \ifprecededbyequalsign%
+      \ifstartedbyadigit%
+      \def\lst@thestyle{\ttfamily\mdseries\color{\colNumbers}}%
+      \fi
+    \fi
+  \global\firstchartrue%
+  \global\startedbyadigitfalse%
+  \global\precededbyequalsignfalse%
+}
+
+
+%%%% Here starts the code
+
+%%%% 1. the preliminary things
+
+\toks@={
+    commentstyle=\ttfamily\itshape\color{\colComments},
+    stringstyle=\ttfamily\mdseries\color{\colSrings},
+    keywordstyle=\ttfamily\bfseries\color{\colKeywords},
+    alsoletter=0123456789,
+    SelectCharTable=%
+}
+
+%%%% 2. A helper macro; #1 is a counter, #2 a macro;
+%%%% This produces a token list of the form
+%%%% \lst@DefSaveDef{"value of #1"}{\lsts@<char#1>}{\lsts@char#2}
+%%%% where <char#1> is the character corresponding to the counter's value.
+%%%% Then this token list is appended to \toks@
+
+\def\add@savedef#1#2{%
+  \begingroup\lccode`?=#1\relax
+  \lowercase{\endgroup
+  \edef\@temp{%
+    \noexpand\lst@DefSaveDef{\number#1}%
+    \expandafter\noexpand\csname lsts@?\endcsname{%
+      \expandafter\noexpand\csname lsts@?\endcsname\noexpand#2}%
+  }}%
+  \toks@=\expandafter{\the\expandafter\toks@\@temp}%
+}
+
+%%%% 3. A loop for the digits
+
+\count@=`0
+\loop
+  \add@savedef\count@\processdigit
+  \ifnum\count@<`9
+  \advance\count@\@ne
+\repeat
+
+%%%% 4. A loop for the uppercase letters
+
+\count@=`A
+\loop
+  \add@savedef\count@\processletter
+  \ifnum\count@<`Z
+  \advance\count@\@ne
+\repeat
+
+%%%% 5. A loop for the lowercase letters
+
+\count@=`a
+\loop
+  \add@savedef\count@\processletter
+  \ifnum\count@<`z
+  \advance\count@\@ne
+\repeat
+
+%%%% 6. Produce \lstdefinestyle{mycode}{<value of \toks@>}
+
+\begingroup\edef\x{\endgroup
+  \noexpand\lstdefinestyle{CStyle}{\the\toks@}
+}\x
+\makeatother 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % Miscellaneous symbols
 \newcommand{\plus}{\raisebox{.4\height}{\scalebox{.6}{\ensuremath{+}}}}
 \newcommand{\minus}{\raisebox{.4\height}{\scalebox{.8}{\ensuremath{-}}}}
-\newcommand{\tildett}{\ensuremath{\scriptstyle\sim}}
+\newcommand{\mult}{\raisebox{-.3\height}{\texttt{*}}}
+\newcommand{\tildett}{\texttt{\char`\~}}
 
 % Text formatting shorthands
 \newcommand{\codett}[1]{\texttt{#1}}
 \newcommand{\substt}[2]{\texttt{#1}$_{\texttt{#2}}$}
 
 % Style shorthand for code elements
-\newcommand{\cdelim}[1]{\color{red}#1}  % delimiter
-\newcommand{\cop}[1]{\color{yellow}#1}  % operators
+\newcommand{\cdelim}[1]{\color{red}\texttt{#1}}  % delimiter
+\newcommand{\cop}[1]{\color{green}\texttt{#1}}  % operators
 
 % Specific hacks for listings
 \newcommand{\actProbe}[1]{$\overline{\mathtt{#1}}$}
@@ -51,48 +180,38 @@
 % Style definition for CHP
 \lstdefinelanguage{chp}{%
     sensitive=true,
-    keywords={bool, pbool, pbint, preal}, 
     alsoletter={'},
     morecomment=[l]{//},
     morecomment=[s]{/*}{*/},
     morecomment=[is]{\%}{\%},
     morestring=[b]",
     moredelim=*[is][\ttfamily\color{base01}\textsubscript]{_}{_},
-    moredelim=[is][\ttfamily\color{base01}\expandafter\actProbe]{\#}{\ },
+    moredelim=[is][\ttfamily\color{base01}\actProbe]{\#}{\ },
     moredelim=[is][\ttfamily\color{base01}\textsuperscript]{^}{^},
     moredelim=[is][\ttfamily\itshape\color{blue}]{@}{@},
     basicstyle=\ttfamily\normalfont,
     identifierstyle=\ttfamily\mdseries\color{base01},
-    keywordstyle=\ttfamily\bfseries\color{green},
-    stringstyle=\ttfamily\mdseries\color{magenta},
-    commentstyle=\ttfamily\itshape\color{base0},
     columns=flexible,
-    emph={skip,else}, emphstyle=\color{green}\bfseries,
+    emph={skip,else}, emphstyle=\color{yellow}\bfseries,
     literate=
-    *{0}{{{\color{cyan}0}}}1
-     {1}{{{\color{cyan}1}}}1
-     {2}{{{\color{cyan}2}}}1
-     {3}{{{\color{cyan}3}}}1
-     {4}{{{\color{cyan}4}}}1
-     {5}{{{\color{cyan}5}}}1
-     {6}{{{\color{cyan}6}}}1
-     {7}{{{\color{cyan}7}}}1
-     {8}{{{\color{cyan}8}}}1
-     {9}{{{\color{cyan}9}}}1
-     {*}{{\cop{$\times$}}}2
-     {+}{{\cop{+}}}2
-     {-}{{\cop{$-$}}}2
-     %{/}{{\cop{/}}}2
+    *{*}{{\cop{$\times$}}}2
+    {+}{{\cop{+}}}2
+    {++}{{\cop{$\uparrow$}}}2
+    {-}{{\cop{-}}}2
+    {--}{{\cop{$\downarrow$}}}2
+    {.}{{\cop{$\bullet$}}}2
+    %{/}{{\cop{/}}}2
     {[}{{\cdelim{\bfseries[}}}2 {]}{{\cdelim{\bfseries]}}}2 
-    {*[}{{\cdelim{\bfseries*\;[}}}3 
+    {*[}{{\cdelim{\bfseries\mult[}}}3 
     {(}{{\cdelim{(}}}2 {)}{{\cdelim{)}}}2 
-    {:}{{\cop{$:$}}}2 {[]}{{\cop{$\talloblong$}}}3
+    {\{}{{\cdelim{\{}}}2 {\}}{{\cdelim{\}}}}2 
+    {:}{{\cop{:}}}2 {[]}{{\cop{$\talloblong$}}}3
     {->}{{\cop{$\to$}}}4 
-    {>}{{\cop{$>$}}}3 {<}{{\cop{$<$}}}3 
+    {>}{{\cop{>}}}3 {<}{{\cop{<}}}3 
     {&}{{\cop{$\land$}}}3 {|}{{\cop{$\lor$}}}3
-    {&&}{{\cop{$\&$}}}3 {||}{{\cop{$\vert$}}}3
-    {~}{{\cop{$\lnot$}}}1 {=}{{\cop{$=$}}}3 
-    {,}{{\cop{$\parallel$}}}2 {;}{{\cdelim{;}}}2 
+    {&&}{{\cop{\&}}}3 {||}{{\cop{|}}}3
+    {~}{{\cop{$\lnot$}}}1 {=}{{\cop{=}}}3 
+    {,}{{\cop{,}}}2 {;}{{\cdelim{;}}}2 
     {<=}{{\cop{$\le$}}}3 {>=}{{\cop{$\ge$}}}3 
     {<<}{{\cop{$\ll$}}}3 {>>}{{\cop{$\gg$}}}3 
     {:=}{{\cop{$\coloneqq$}}}4 {!}{{\cop{!}}}2 {?}{{\cop{?}}}2,
@@ -100,91 +219,119 @@
 
 \lstdefinelanguage{hse}[]{chp}{%
     literate=
-    *{0}{{{\color{cyan}0}}}1
-     {1}{{{\color{cyan}1}}}1
-     {2}{{{\color{cyan}2}}}1
-     {3}{{{\color{cyan}3}}}1
-     {4}{{{\color{cyan}4}}}1
-     {5}{{{\color{cyan}5}}}1
-     {6}{{{\color{cyan}6}}}1
-     {7}{{{\color{cyan}7}}}1
-     {8}{{{\color{cyan}8}}}1
-     {9}{{{\color{cyan}9}}}1
-     {*}{{\cop{$\times$}}}2
-     {+}{{\cop{$\uparrow$}}}2
-     {-}{{\cop{$\downarrow$}}}2
+    *{*}{{\cop{$\times$}}}2
+    {+}{{\cop{$\uparrow$}}}2
+    {-}{{\cop{$\downarrow$}}}2
     {[}{{\cdelim{\bfseries[}}}2 {]}{{\cdelim{\bfseries]}}}2 
-    {*[}{{\cdelim{\bfseries*\;[}}}3 
+    {*[}{{\cdelim{\bfseries\mult[}}}3 
     {\{}{{\cdelim{\{}}}2 {\}}{{\cdelim{\}}}}2 
     {(}{{\cdelim{(}}}2 {)}{{\cdelim{)}}}2 
     {:}{{\cdelim{$\vert$}}}2 {[]}{{\cdelim{$\talloblong$}}}3
     {->}{{\cop{$\to$}}}4 
-    {&}{{\cop{$\&$}}}3 {|}{{\cop{$\vert$}}}3
-    {&&}{{\cop{$\&$}}}3 {||}{{\cop{$\vert$}}}3
+    {&}{{\cop{\&}}}3 {|}{{\cop{|}}}3
+    {&&}{{\cop{\&}}}3 {||}{{\cop{|}}}3
     {~}{{\cop{\tildett}}}1 
     {,}{{\cdelim{$\parallel$}}}2 {;}{{\cdelim{;}}}2 
 }
 
 \lstdefinelanguage{prs}[]{chp}{%
     literate=
-    *{0}{{{\color{cyan}0}}}1
-     {1}{{{\color{cyan}1}}}1
-     {2}{{{\color{cyan}2}}}1
-     {3}{{{\color{cyan}3}}}1
-     {4}{{{\color{cyan}4}}}1
-     {5}{{{\color{cyan}5}}}1
-     {6}{{{\color{cyan}6}}}1
-     {7}{{{\color{cyan}7}}}1
-     {8}{{{\color{cyan}8}}}1
-     {9}{{{\color{cyan}9}}}1
-     {+}{{\cop{$\uparrow$}}}2
-     {-}{{\cop{$\downarrow$}}}2
-     {\{}{{\cdelim{\{}}}2 {\}}{{\cdelim{\}}}}2 
+    *{+}{{\cop{$\uparrow$}}}2
+    {-}{{\cop{$\downarrow$}}}2
+    {\{}{{\cdelim{\{}}}2 {\}}{{\cdelim{\}}}}2 
     {(}{{\cdelim{(}}}2 {)}{{\cdelim{)}}}2 
     {->}{{\cop{$\to$}}}4 
-    {&}{{\cop{$\&$}}}3 {|}{{\cop{$\vert$}}}3
-    {&&}{{\cop{$\&$}}}3 {||}{{\cop{$\vert$}}}3
+    {&}{{\cop{\&}}}3 {|}{{\cop{|}}}3
+    {&&}{{\cop{\&}}}3 {||}{{\cop{|}}}3
     {~}{{\cop{\tildett}}}1 
     {,}{{\cdelim{$\parallel$}}}2 {;}{{\cdelim{;}}}2 
+}
+
+\lstdefinelanguage{act}[]{chp}{%
+    keywords={bool, pbool, pbint, preal}, 
+    morekeywords={defproc, defchan},
+    morekeywords={chp, prs},
+    keywordstyle=\ttfamily\color{yellow},
+    emph={skip,else}, emphstyle=\color{yellow}\bfseries,
+    emph={import}, emphstyle=\color{magenta}\bfseries,
+    deletedelim=*[is]{_}{_},
+    deletedelim=[is]{\#}{\ },
+    deletedelim=[is]{^}{^},
+    deletedelim=[is]{@}{@},
+    literate=
+    *{*}{{\cop{\mult}}}1
+    {+}{{\cop{+}}}1
+    {-}{{\cop{-}}}1
+    {?}{{\cop{?}}}1
+    {!}{{\cop{!}}}1
+    {[}{{\cdelim{[}}}1 {]}{{\cdelim{]}}}1
+    {*[}{{\cdelim{\mult[}}}2
+    {\{}{{\cdelim{\{}}}1 {\}}{{\cdelim{\}}}}1
+    {(}{{\cdelim{(}}}1 {)}{{\cdelim{)}}}1
+    {:}{{\cdelim{:}}}1 {[]}{{\cdelim{[]}}}2
+    {->}{{\cop{->}}}2
+    {&}{{\cop{\&}}}1 {|}{{\cop{|}}}1
+    {&&}{{\cop{\&\&}}}2 {||}{{\cop{||}}}2
+    {~}{{\cop{\tildett}}}1 
+    {,}{{\cdelim{,}}}1 {;}{{\cdelim{;}}}1,
+    columns=fixed,
 }
 
 % Environment for typing CHP code
 % #1: width of listing as fraction of \textwidth
 % #2: caption
 % #3: line number position (left|right|none)
-\newcommand{\defactenv}[2]{
-    \lstset{ 
-    backgroundcolor=\color{base3},
+\lstdefinestyle{ActStyle}{
+    style=Solarized,
+    captionpos=b,
     mathescape=true, numberblanklines=false,
-    numbers=#2, numberstyle=\small\color{base1}, stepnumber=1,
-    caption=#1,captionpos=b,
     xleftmargin=1em, xrightmargin=1em,
     framexleftmargin=3em, framexrightmargin=3em,
-    showstringspaces=false, frame=lines,
-    fontadjust=false,
-    breaklines=true,
-}
+    showstringspaces=false, frame=none,
+    fontadjust=false, breaklines=true,
 }
 
-\lstnewenvironment{chp}[3][0.8]
+\lstnewenvironment{chp}[4][0.8]
 {\center\minipage{#1\textwidth}
-\defactenv{#2}{#3}
-\lstset{language=chp}
+\lstset{language=chp, label=#4, style=ActStyle}
+\lstset{caption=#2, numbers=#3, backgroundcolor=\color{\colBackground}}
 }
 {\endminipage\endcenter}
 
-\lstnewenvironment{hse}[3][0.8]
+\lstnewenvironment{hse}[4][0.8]
 {\center\minipage{#1\textwidth}
-\defactenv{#2}{#3}
-\lstset{language=hse}
+\lstset{language=hse, label=#4, style=ActStyle}
+\lstset{caption=#2, numbers=#3, backgroundcolor=\color{\colBackground}}
 }
 {\endminipage\endcenter}
 
-\lstnewenvironment{prs}[3][0.8]
+\lstnewenvironment{prs}[4][0.8]
 {\center\minipage{#1\textwidth}
-\defactenv{#2}{#3}
-\lstset{language=prs}
+\lstset{language=prs, label=#4, style=ActStyle}
+\lstset{caption=#2, numbers=#3, backgroundcolor=\color{\colBackground}}
 }
 {\endminipage\endcenter}
+
+\newtcblisting{act}[1][]
+{%
+    width=0.8\textwidth,
+    boxrule=0pt, left=15.5pt,
+    arc=0pt, outer arc=0pt,
+    top=0pt, bottom=0pt,
+    colback=\colBackground,
+    overlay={
+        \fill[base2]
+        ([xshift=0.2pt]frame.south west)
+        rectangle
+        ([xshift=21.5pt]frame.north west);
+    },
+    enhanced, listing only,
+    listing options={
+        language=act,
+        style=ActStyle,
+        keywordstyle=\ttfamily\color{\colKeywords},
+        #1
+    }
+}
 
 \endinput
