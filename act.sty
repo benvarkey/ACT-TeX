@@ -7,7 +7,8 @@
 \RequirePackage{stmaryrd}  % for logical operators
 \RequirePackage{etoolbox}  % for fixing bug in listings
 \RequirePackage[listings,skins]{tcolorbox}
-\RequirePackage{needspace}
+\RequirePackage{xparse}
+\RequirePackage{xstring}
 %\RequirePackage[]{listings}  % for code formatting
 \ProcessOptions\relax
 
@@ -51,113 +52,8 @@
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TODO:
 % Code (from http://tex.stackexchange.com/questions/164442/how-can-i-redefine-my-macro-to-accept-a-charcode-instead-of-a-character/164447#164447) to properly select numbers
-\newif\iffirstchar\firstchartrue
-\newif\ifstartedbyadigit
-\newif\ifprecededbyequalsign
-
-\newcommand\processletter
-{%
-  \ifnum\lst@mode=\lst@Pmode%
-    \iffirstchar%
-        \global\startedbyadigitfalse%
-      \fi
-      \global\firstcharfalse%
-    \fi
-}
-
-\newcommand\processdigit
-{%
-  \ifnum\lst@mode=\lst@Pmode%
-      \iffirstchar%
-        \global\startedbyadigittrue%
-      \fi
-      \global\firstcharfalse%
-  \fi
-}
-
-\lst@AddToHook{OutputOther}%
-{%
-  \lst@IfLastOtherOneOf{=}
-    {\global\precededbyequalsigntrue}
-    {}%
-}
-
-\lst@AddToHook{Output}%
-{%
-  \ifprecededbyequalsign%
-      \ifstartedbyadigit%
-      \def\lst@thestyle{\ttfamily\mdseries\color{\colNumbers}}%
-      \fi
-    \fi
-  \global\firstchartrue%
-  \global\startedbyadigitfalse%
-  \global\precededbyequalsignfalse%
-}
-
-
-%%%% Here starts the code
-
-%%%% 1. the preliminary things
-
-\toks@={
-    commentstyle=\ttfamily\itshape\color{\colComments},
-    stringstyle=\ttfamily\mdseries\color{\colSrings},
-    keywordstyle=\ttfamily\bfseries\color{\colKeywords},
-    alsoletter=0123456789,
-    SelectCharTable=%
-}
-
-%%%% 2. A helper macro; #1 is a counter, #2 a macro;
-%%%% This produces a token list of the form
-%%%% \lst@DefSaveDef{"value of #1"}{\lsts@<char#1>}{\lsts@char#2}
-%%%% where <char#1> is the character corresponding to the counter's value.
-%%%% Then this token list is appended to \toks@
-
-\def\add@savedef#1#2{%
-  \begingroup\lccode`?=#1\relax
-  \lowercase{\endgroup
-  \edef\@temp{%
-    \noexpand\lst@DefSaveDef{\number#1}%
-    \expandafter\noexpand\csname lsts@?\endcsname{%
-      \expandafter\noexpand\csname lsts@?\endcsname\noexpand#2}%
-  }}%
-  \toks@=\expandafter{\the\expandafter\toks@\@temp}%
-}
-
-%%%% 3. A loop for the digits
-
-\count@=`0
-\loop
-  \add@savedef\count@\processdigit
-  \ifnum\count@<`9
-  \advance\count@\@ne
-\repeat
-
-%%%% 4. A loop for the uppercase letters
-
-\count@=`A
-\loop
-  \add@savedef\count@\processletter
-  \ifnum\count@<`Z
-  \advance\count@\@ne
-\repeat
-
-%%%% 5. A loop for the lowercase letters
-
-\count@=`a
-\loop
-  \add@savedef\count@\processletter
-  \ifnum\count@<`z
-  \advance\count@\@ne
-\repeat
-
-%%%% 6. Produce \lstdefinestyle{mycode}{<value of \toks@>}
-
-\begingroup\edef\x{\endgroup
-  \noexpand\lstdefinestyle{CStyle}{\the\toks@}
-}\x
-\makeatother 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Miscellaneous symbols
@@ -264,12 +160,14 @@
     {-}{{\cop{-}}}1
     {?}{{\cop{?}}}1
     {!}{{\cop{!}}}1
+    {=}{{\cop{=}}}1
     {[}{{\cdelim{[}}}1 {]}{{\cdelim{]}}}1
     {*[}{{\cdelim{\mult[}}}2
     {\{}{{\cdelim{\{}}}1 {\}}{{\cdelim{\}}}}1
     {(}{{\cdelim{(}}}1 {)}{{\cdelim{)}}}1
     {:}{{\cdelim{:}}}1 {[]}{{\cdelim{[]}}}2
     {->}{{\cop{->}}}2
+    {=>}{{\cop{=>}}}2
     {&}{{\cop{\&}}}1 {|}{{\cop{|}}}1
     {&&}{{\cop{\&\&}}}2 {||}{{\cop{||}}}2
     {~}{{\cop{\tildett}}}1 
@@ -277,10 +175,6 @@
     columns=fixed,
 }
 
-% Environment for typing CHP code
-% #1: width of listing as fraction of \textwidth
-% #2: caption
-% #3: line number position (left|right|none)
 \lstdefinestyle{ActStyle}{
     style=Solarized,
     captionpos=b,
@@ -291,47 +185,44 @@
     fontadjust=false, breaklines=true,
 }
 
-\lstnewenvironment{chp}[4][0.8]
-{\center\minipage{#1\textwidth}
-\lstset{language=chp, label=#4, style=ActStyle}
-\lstset{caption=#2, numbers=#3, backgroundcolor=\color{\colBackground}}
-}
-{\endminipage\endcenter}
-
-\lstnewenvironment{hse}[4][0.8]
-{\center\minipage{#1\textwidth}
-\lstset{language=hse, label=#4, style=ActStyle}
-\lstset{caption=#2, numbers=#3, backgroundcolor=\color{\colBackground}}
-}
-{\endminipage\endcenter}
-
-\lstnewenvironment{prs}[4][0.8]
-{\center\minipage{#1\textwidth}
-\lstset{language=prs, label=#4, style=ActStyle}
-\lstset{caption=#2, numbers=#3, backgroundcolor=\color{\colBackground}}
-}
-{\endminipage\endcenter}
-
-\newtcblisting{act}[1][]
-{%
-    width=0.8\textwidth,
-    boxrule=0pt, left=15.5pt,
-    arc=0pt, outer arc=0pt,
-    top=0pt, bottom=0pt,
-    colback=\colBackground,
-    overlay={
+\newcommand{\actnumberoverlay}{%
+        \begin{tcbclipinterior}
         \fill[base2]
         ([xshift=0.2pt]frame.south west)
         rectangle
         ([xshift=21.5pt]frame.north west);
-    },
+        \end{tcbclipinterior}
+}
+\newtcblisting{lstACT}[2][]
+{%
+    width=0.8\textwidth,
+    outer arc=0pt,
+    arc=0pt,
+    left=15.5pt, top=-0.75em, bottom=-0.75em,
+    frame hidden,
+    colback=\colBackground,
     enhanced, listing only,
+    listing remove caption=true,
     listing options={
-        language=act,
         style=ActStyle,
-        keywordstyle=\ttfamily\color{\colKeywords},
         #1
-    }
+    },
+    overlay=#2
+}
+
+\DeclareDocumentEnvironment{act}{o m m m m}{%
+\newcommand{\actoverlay}{\IfStrEq{#3}{none}{}{\actnumberoverlay}}%
+\center
+\IfStrEq{#2}{act}{\lstset{keywordstyle=\ttfamily\color{\colKeywords}}}{}%
+\IfNoValueTF {#1}
+    {\lstACT[language=#2, numbers=#3]{\actoverlay}}
+    {\lstACT[#1, language=#2, numbers=#3]{\actoverlay}}
+}{%
+\endlstACT
+\label{#4}
+\vspace{-1em}
+\captionof{lstlisting}{#5}
+\endcenter
 }
 
 \endinput
