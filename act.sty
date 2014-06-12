@@ -9,6 +9,7 @@
 \RequirePackage[listings,skins]{tcolorbox}
 \RequirePackage{xparse}
 \RequirePackage{xstring}
+%\RequirePackage{pgfkeys}
 %\RequirePackage[]{listings}  % for code formatting
 \ProcessOptions\relax
 
@@ -71,6 +72,7 @@
 \newcommand{\cop}[1]{\color{green}\texttt{#1}}  % operators
 
 % Specific hacks for listings
+% TODO: add text subscript and superscript
 \newcommand{\actProbe}[1]{$\overline{\mathtt{#1}}$}
 
 % Style definition for CHP
@@ -210,18 +212,34 @@
     overlay=#2
 }
 
-\DeclareDocumentEnvironment{act}{o m m m m}{%
-\newcommand{\actoverlay}{\IfStrEq{#3}{none}{}{\actnumberoverlay}}%
-\center
+\pgfkeys{
+    /actenv/.is family, /actenv,
+    default/.style={
+        lstoptions={},
+        numbers=none,
+        label={},
+        caption={}
+    },
+    lstoptions/.estore in=\actlstoptions,
+    numbers/.estore in=\actnumbers,
+    label/.estore in=\actlabel,
+    caption/.store in=\actcaption
+}
+
+\DeclareDocumentEnvironment{act}{o m}{%
+\pgfkeys{/actenv, default, #1}%
+\newcommand{\actoverlay}{\IfStrEq{\actnumbers}{none}{}{\actnumberoverlay}}%
+\protected@edef\lstactargs{\actlstoptions,%
+numbers=\actnumbers}%
+\expandafter\lstset\expandafter{\lstactargs}%
+\center%
 \IfStrEq{#2}{act}{\lstset{keywordstyle=\ttfamily\color{\colKeywords}}}{}%
-\IfNoValueTF {#1}
-    {\lstACT[language=#2, numbers=#3]{\actoverlay}}
-    {\lstACT[#1, language=#2, numbers=#3]{\actoverlay}}
+\lstACT[language=#2]{\actoverlay}
 }{%
-\endlstACT
-\label{#4}
+\endlstACT%
+\label{\actlabel}
 \vspace{-1em}
-\captionof{lstlisting}{#5}
+\captionof{lstlisting}{\actcaption}
 \endcenter
 }
 
