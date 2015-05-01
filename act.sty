@@ -6,6 +6,7 @@
 \RequirePackage{xcolor}  % for solarized
 \RequirePackage{stmaryrd}  % for logical operators
 \RequirePackage{etoolbox}  % for fixing bug in listings
+\RequirePackage[font=small, labelfont=bf]{caption}  % for captions
 \RequirePackage[listings,skins]{tcolorbox}
 \RequirePackage{xparse}
 \RequirePackage{xstring}
@@ -81,7 +82,7 @@
     alsoletter={'},
     morecomment=[l]{//},
     morecomment=[s]{/*}{*/},
-    morecomment=[is]{\%}{\%},
+    %morecomment=[is]{\%}{\%},
     morestring=[b]",
     moredelim=*[is][\ttfamily\color{base01}\textsubscript]{_}{_},
     moredelim=[is][\ttfamily\color{base01}\actProbe]{\#}{\ },
@@ -197,7 +198,7 @@
 }
 \newtcblisting{lstACT}[2][]
 {%
-    width=0.8\textwidth,
+    width=0.9\textwidth,
     outer arc=0pt,
     arc=0pt,
     left=15.5pt, top=-0.75em, bottom=-0.75em,
